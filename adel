@@ -1,0 +1,102 @@
+<?php
+if (!isset($argv[1])) {
+    echo "Error";
+    exit();
+}
+
+function getParam($args)
+{
+    $param = [];
+
+    foreach ($args as $argKey => $arg) {
+        if (preg_match("/\-([A-Za-z0-9]+){0,32}/", $arg, $match)) {
+            $param[$match[1]] = isset($args[$argKey + 1]) ? $args[$argKey + 1] : "";
+        }
+    }
+
+    return $param;
+}
+
+function combineParam($args)
+{
+    $argString = "";
+
+    foreach ($args as $arg) {
+        $argString .= " " . $arg;
+    }
+
+    return $argString;
+}
+
+function makeController($name)
+{
+    $text = "<?php
+namespace Controller;
+
+use Lego\App;
+
+class $name
+{
+    public static function index(App \$app)
+    {
+    }
+}
+";
+
+    $file = fopen(__DIR__ . "/controllers/$name.php", "w") or die("Unable to open file!");
+    fwrite($file, $text);
+    fclose($file);
+}
+
+function makeModel($name)
+{
+    $text = "<?php
+namespace Model;
+
+use Illuminate\Database\Eloquent\Model as BaseModel;
+
+class $name extends BaseModel
+{
+    //
+}
+";
+
+    $file = fopen(__DIR__ . "/models/$name.php", "w") or die("Unable to open file!");
+    fwrite($file, $text);
+    fclose($file);
+}
+
+$arg = $argv[1];
+unset($argv[0]);
+unset($argv[1]);
+
+$argv = array_values($argv);
+
+switch ($arg) {
+    case "run":
+        $param = getParam($argv);
+        $port = isset($param["p"]) ? $param["p"] : "8080";
+        $host = isset($param["h"]) ? $param["h"] : "localhost";
+        exec("php -S $host:$port -t public", $output);
+
+        print_r($output);
+
+        break;
+    case "make:controller":
+        makeController($argv[0]);
+        echo "Contrroler has been created";
+        break;
+    case "make:model":
+        makeModel($argv[0]);
+        echo "Model has been created";
+        $param = getParam($argv);
+        if(isset($param["m"])) {
+            system(__DIR__."/vendor/bin/phinx create " . $argv[0]);
+        }
+        break;
+    case "migration":
+        system(__DIR__."/vendor/bin/phinx " . combineParam($argv));
+        break;
+    default:
+        echo "Command not found";
+}
