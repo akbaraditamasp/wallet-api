@@ -224,7 +224,7 @@ class Transaction
         $withdraw = Withdraw::where("code", $app->request->post("code"))->where("valid_before", ">", Carbon::now())->whereRelation("user", "username", "=", $app->request->post("username"))->firstOrFail();
 
         if ($withdraw->user->balance < $app->request->post("amount")) {
-            $app->response->setStatus(400);
+            $app->response->setStatus(403);
             return [
                 "error" => "Amount is greater than user balance",
             ];
