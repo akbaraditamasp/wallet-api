@@ -35,7 +35,8 @@ class User
         $app->admin();
 
         $offset = $app->request->get("page", 1) - 1 * 20;
-        $users = ModelUser::orderBy("created_at", "desc");
+        $q = $app->request->get("q", "");
+        $users = ModelUser::where("username", "LIKE", "%$q%")->orderBy("created_at", "desc");
 
         return [
             "page_total" => $users->count(),
