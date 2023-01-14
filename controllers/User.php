@@ -39,7 +39,7 @@ class User
         $users = ModelUser::where("username", "LIKE", "%$q%")->orderBy("created_at", "desc");
 
         return [
-            "page_total" => $users->count(),
+            "page_total" => ceil($users->count() / $limit),
             "data" => $users->skip($offset)->take(20)->get()->makeHidden(["password"])->toArray(),
         ];
     }
