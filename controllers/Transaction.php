@@ -161,6 +161,7 @@ class Transaction
 
         if (!isset($app->user)) {
             $app->admin();
+            $pass_limit = $app->request->get("pass_limit");
         }
 
         $status = $app->request->get("status", "success");
@@ -177,8 +178,8 @@ class Transaction
             })->with(["user:id,username,name,created_at,updated_at"])->orderBy("created_at", "desc");
         }
         return [
-            "page_total" => ceil($transactions->count() / $limit),
-            "data" => $transactions->skip($offset)->take($limit)->get()->toArray(),
+            "page_total" => $pass_limit ? 1 : ceil($transactions->count() / $limit),
+            "data" => $pass_limit ? $transactions->get()->toArray() : $transactions->skip($offset)->take($limit)->get()->toArray(),
         ];
     }
 
